@@ -1,3 +1,5 @@
+from datetime import datetime
+
 #Fiz essa função para validar se o valor digitado pelo usuário é um numero válido
 def valida_vlr_inserido(texto):
     # Remove espaços em branco
@@ -41,17 +43,17 @@ def saque(int: valor_operacao):
     saldo -= valor_operacao
 
 extrato = """
-=========================  
-=== Extrato da Conta ====
-=========================
+=============================================  
+============= Extrato da Conta ==============
+=============================================
 
 """
 
 
 menu = """
-========================    
-=== Sistema Bancário ===
-========================
+============================================    
+============= Sistema Bancário =============
+============================================
 
 Operações Disponíveis:
 
@@ -60,7 +62,7 @@ Operações Disponíveis:
 3 - Extrato
 4 - Sair
 
-========================
+============================================
 
 Informe a operação desejada: 
 """
@@ -68,9 +70,12 @@ Informe a operação desejada:
 saldo = 0.00
 limite = 500.00
 extrato += "Saldo Inicial: R$ 0.00\n\n"
-numero_saques = 0
-LIMITE_SAQUES = 3
+numero_transacoes_dia = {datetime.now().strftime("%d/%m/%Y") : 0}
+numero_transacoes = 0
+LIMITE_TRANSACOES = 10
 valor_operacao = 0.00
+data_hora_transacao = ''
+data_transacao = ''
 
 while True:
 
@@ -79,17 +84,28 @@ while True:
     if opcao == "1":
         print("")
         print("Depósito")
-        valor_operacao = valida_vlr_inserido(input("Informe o valor a ser depositado: "))
         
-        if valor_operacao is not None:
-            print(f"Valor a ser depositado: {valor_operacao:.2f}")
-            extrato += f"Realizado Depósito de:   R$ {valor_operacao:.2f}\n"
-            extrato += f"Valor antes do depósito: R$ {saldo:.2f}\n"
-            deposito(valor_operacao)
-            extrato += f"Saldo após o depósito:   R$ {saldo:.2f}\n \n"
-            print("Deposito realizado com sucesso!")
+        if numero_transacoes_dia[datetime.now().strftime("%d/%m/%Y")] < 10:
+            valor_operacao = valida_vlr_inserido(input("Informe o valor a ser depositado: "))
+            
+            if valor_operacao is not None:
+                data_hora_transacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                numero_transacoes = (numero_transacoes_dia[data_hora_transacao.split(" ")[0]])+1
+                numero_transacoes_dia = {data_hora_transacao.split(" ")[0]:numero_transacoes}
+                print(f"num transações: {numero_transacoes_dia[data_hora_transacao.split(" ")[0]]}")
+                print(f"Valor a ser depositado: {valor_operacao:.2f}")
+                extrato += f"{data_hora_transacao}\n"
+                extrato += f"Realizado Depósito de:........R$ {valor_operacao:.2f}\n"
+                extrato += f"Valor antes do depósito:......R$ {saldo:.2f}\n"
+                deposito(valor_operacao)
+                extrato += f"Saldo após o depósito:........R$ {saldo:.2f}\n \n"
+                print(f"Deposito realizado com sucesso no valor de R$ {valor_operacao} na data {data_hora_transacao}!")
+            else:
+                print("ERRO: Informe um valor válido")
         else:
-            print("ERRO: Informe um valor válido")
+            print("")
+            print("Não foi possível realizar a operação")
+            print(f"Numero limite de operações diárias atingidas: {LIMITE_TRANSACOES}\n")
         
         
     elif opcao == "2":
@@ -97,18 +113,22 @@ while True:
         print("Opção escolhida: Saque")
         print("")
         
-        if numero_saques < 3:
+        if numero_transacoes_dia[datetime.now().strftime("%d/%m/%Y")] < 10:
             valor_operacao = int(input("Informe o valor que deseja retirar: "))
             if valor_operacao is not None:
                 if valor_operacao <= 500:
                     if saldo >= valor_operacao:
-                        numero_saques += 1
-                        extrato += f"Realizado saque no valor de R$ {valor_operacao:.2f}\n"
-                        extrato += f"Valor antes do saque:       R$ {saldo:.2f}\n"
+                        data_hora_transacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                        numero_transacoes = (numero_transacoes_dia[data_hora_transacao.split(" ")[0]])+1
+                        numero_transacoes_dia = {data_hora_transacao.split(" ")[0]:numero_transacoes}
+                        print(f"num transações: {numero_transacoes_dia[data_hora_transacao.split(" ")[0]]}")
+                        extrato += f"{data_hora_transacao}\n"
+                        extrato += f"Realizado saque no valor de:..R$ {valor_operacao:.2f}\n"
+                        extrato += f"Valor antes do saque:.........R$ {saldo:.2f}\n"
                         saque(valor_operacao)
-                        extrato += f"Saldo após o saque:         R$ {saldo:.2f}\n \n"
+                        extrato += f"Saldo após o saque:...........R$ {saldo:.2f}\n \n"
                         print("")
-                        print(f"Saque realizado com sucesso no valor de R$ {valor_operacao:.2f}!")
+                        print(f"Saque realizado com sucesso no valor de R$ {valor_operacao:.2f} na data {data_hora_transacao}!")
                     else:
                         print("")
                         print("Não foi possível realizar a operação")
@@ -122,7 +142,7 @@ while True:
         else:
             print("")
             print("Não foi possível realizar a operação")
-            print(f"Numero limite de saques diários atingidos: {LIMITE_SAQUES}\n")
+            print(f"Numero limite de operações diárias atingidas: {LIMITE_TRANSACOES}\n")
         
         
     elif opcao == "3":
@@ -130,14 +150,14 @@ while True:
         print("Opção escolhida: Extrato")
         print("")
         
-        extrato += "====== Fim Extrato ======\n"
-        extrato += "=========================\n"
         print(extrato)
+        print("================ Fim Extrato ================")
+        print("=============================================\n")
     
     elif opcao == "4":
-        print("========================")
+        print("============================================")
         print("Saindo...")
-        print("========================")
+        print("============================================")
         break
         
     else:
